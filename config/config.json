@@ -1,0 +1,40 @@
+{
+    "directories": [
+        {
+            "name": "Jobs requests",
+            "comment": "It stores request files.",
+            "directory": "/work/jobs/requests/",
+            "period": 30
+        },
+        {
+            "name": "Jobs results",
+            "comment": "It stores result files.",
+            "directory": "/work/jobs/results/",
+            "period": 30
+        },
+        {
+            "name": "NMON logs",
+            "comment": "It stores nmon logs",
+            "directory": "/work/logs/nmon/",
+            "period": 30
+        },
+        {
+            "name": "Sensor logs",
+            "comment": "It stores sensor logs",
+            "directory": "/work/logs/sensor/",
+            "period": 30
+        },
+        {
+            "name": "Camera images",
+            "comment": "It stores camera images",
+            "directory": "/work/images/",
+            "period": 30
+        },
+        {
+            "name": "Transfer files",
+            "comment": "The files in this directory will be transferred to Earth",
+            "directory": "/work/transfer/",
+            "period": 30
+        }
+    ]
+}
