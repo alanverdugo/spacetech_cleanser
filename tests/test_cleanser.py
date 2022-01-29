@@ -10,6 +10,22 @@ Author:
 
 Creation date:
    2022-01-29
+
+Copyright 2022 IBM Corporation
+
+SPDX-License-Identifier: Apache-2.0
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 # Unit testing.
@@ -28,8 +44,8 @@ import os
 from json import JSONDecodeError
 
 # Module to be tested.
-from ..cleanser.cleanser import read_config
-
+#from cleanser.cleanser import read_config
+from cleanser import cleanser
 
 PARENT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
@@ -38,11 +54,6 @@ LOG = logging.getLogger(__name__)
 
 class TestUtilities(unittest.TestCase):
     """Initial class for unit test."""
-
-    # Configuration file.
-    J_CONF_FILE = os.path.join(PARENT_DIR, 'tests', 'conf', 'config_values.json')
-    J_CONF_FILE_B = os.path.join(PARENT_DIR, 'tests', 'conf', 'BAD_config_values.json')
-    Y_CONF_FILE = os.path.join(PARENT_DIR, 'tests', 'conf', 'config_values.yaml')
 
     def test_remove_files(self):
         """
@@ -58,14 +69,17 @@ class TestUtilities(unittest.TestCase):
         file_name2 = tempfile.mkstemp()[1]
         file_name3 = tempfile.mkstemp()[1]
         # Checking when a valid file is removed
-        generic.remove_files(file_name1)
+        cleanser.remove_files(file_name1)
         self.assertFalse(os.path.isfile(file_name1))
         # Checking removing more than one file at once
-        generic.remove_files(file_name2, file_name3)
+        cleanser.remove_files(file_name2, file_name3)
         self.assertFalse(os.path.isfile(file_name2))
         self.assertFalse(os.path.isfile(file_name3))
         # Checking with an invalid file (file does not exists)
-        generic.remove_files('FAIL')
+        # TODO: assert raises exception in the next line
+        cleanser.remove_files('FAIL')
+        # TODO: assert an exception is raised with insufficient permissions
+        # to delete
 
     def test_read_config(self):
         """
