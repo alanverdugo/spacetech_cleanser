@@ -9,4 +9,4 @@ setup(name='cleanser',
       author_email='alan.verdugo.munoz1@ibm.com',
       license='Apache License, Version 2.0',
       packages=['cleanser'],
-      python_requires='>=3.8')
+      python_requires='>=3.6')
