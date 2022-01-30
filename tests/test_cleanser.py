@@ -95,25 +95,25 @@ class TestUtilities(unittest.TestCase):
 
             # Checking with an unreadable file.
             with self.assertRaises(PermissionError):
-                generic.read_config(temp_file.name)
+                cleanser.read_config(temp_file.name)
 
         # Checking with an inexistent file.
         with self.assertRaises(FileNotFoundError):
-            generic.read_config("fake_file.sql")
+            cleanser.read_config("fake_file.sql")
 
         # Checking with a real, readable file which is not valid JSON/YAML.
         with self.assertRaises(JSONDecodeError):
-            generic.read_config(self.J_CONF_FILE_B)
+            cleanser.read_config(self.J_CONF_FILE_B)
 
         with self.assertRaises(ValueError):
-            generic.read_config(self.Y_CONF_FILE)
+            cleanser.read_config(self.Y_CONF_FILE)
 
         # Checking with a valid JSON/YML (temporary) file.
         # Get the full path of the configuration file.
-        data = generic.read_config(self.J_CONF_FILE)
+        data = cleanser.read_config(self.J_CONF_FILE)
         self.assertIsInstance(data, dict)
 
-        data = generic.read_config(self.J_CONF_FILE)
+        data = cleanser.read_config(self.J_CONF_FILE)
         self.assertIsInstance(data, dict)
 
 
