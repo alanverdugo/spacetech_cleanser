@@ -18,6 +18,6 @@ jobs:
           # Install local package
           pip install -e .
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - name: Test with pytest
+      - name: Test with unittest
         run: |
           python tests/test_cleanser.py

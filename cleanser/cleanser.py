@@ -2,8 +2,6 @@
 """
 Delete old files from the file system.
 
-An old file is 
-
 Author:
 Alan Verdugo (alan.verdugo.munoz1@ibm.com)
 
@@ -36,6 +34,8 @@ import logging
 # JSON handling.
 import json
 
+# date and time handling.
+from datetime import time
 
 # Set log level.
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
@@ -80,11 +80,12 @@ def read_config(conf_file: str) -> dict:
         return config
 
 
-def check_age(file_ : , config: dict) -> list:
+def check_age(file_, config: dict) -> list:
     """Build a list of files that are past their end of life."""
-    if ((time.time() - os.path.getmtime(file_)) >
-        MAX_AGE_OF_LAST_LOG_FILE):
-        # The newest file is older than 10 minutes.
+    # TODO: fix this
+    if (time.time() - os.path.getmtime(file_)) > "MAX_AGE_OF_LAST_LOG_FILE":
+        pass
+        # The newest file is older than the allowed age.
 
 
 def remove_files(*file_paths: list):
