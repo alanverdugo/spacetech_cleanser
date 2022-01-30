@@ -41,6 +41,8 @@ from datetime import time
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 LOG = logging.getLogger(__name__)
 
+PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
 
 def main():
     """Orchestrate the program logic."""
@@ -58,8 +60,8 @@ def read_config(conf_file: str) -> dict:
     """
     format_ = os.path.splitext(conf_file)[-1]
     try:
-        if format_ is not '.json':
-            raise ValueError('File type not supported.')
+        if format_ != '.json':
+            raise ValueError(f'File type not supported: {format_}')
         with open(file=conf_file, mode='r', encoding='utf-8') as file_:
             config = file_.read()
             config = json.loads(config)
@@ -99,6 +101,6 @@ def remove_files(*file_paths: list):
         try:
             os.remove(file_path)
 
-        except FileNotFoundError:
+        except FileNotFoundError as exception:
             LOG.warning("Unable to find the file %s", file_path, exc_info=True)
-        # TODO: Add exception for denied permissions
+            raise exception

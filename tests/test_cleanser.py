@@ -30,29 +30,27 @@ limitations under the License.
 
 # Unit testing.
 import unittest
-from unittest.mock import patch, Mock
 
 # Log Handling.
 import logging
 
-# Module for temp files.
+# Module for temporary files.
 import tempfile
 
 # System and OS related functionality.
 import os
 
-from json import JSONDecodeError
+import json
 
 # Module to be tested.
-#from cleanser.cleanser import read_config
 from cleanser import cleanser
 
-PARENT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 LOG = logging.getLogger(__name__)
 
 
-class TestUtilities(unittest.TestCase):
+class TestCleanser(unittest.TestCase):
     """Initial class for unit test."""
 
     def test_remove_files(self):
@@ -64,22 +62,16 @@ class TestUtilities(unittest.TestCase):
         create a log warning in remove_file process.
         """
         LOG.info("Starting test_remove_files")
-        # Creating a set of files in disc that wont be automated deleted
-        file_name1 = tempfile.mkstemp()[1]
-        file_name2 = tempfile.mkstemp()[1]
-        file_name3 = tempfile.mkstemp()[1]
-        # Checking when a valid file is removed
-        cleanser.remove_files(file_name1)
-        self.assertFalse(os.path.isfile(file_name1))
-        # Checking removing more than one file at once
-        cleanser.remove_files(file_name2, file_name3)
-        self.assertFalse(os.path.isfile(file_name2))
-        self.assertFalse(os.path.isfile(file_name3))
-        # Checking with an invalid file (file does not exists)
-        # TODO: assert raises exception in the next line
-        cleanser.remove_files('FAIL')
-        # TODO: assert an exception is raised with insufficient permissions
-        # to delete
+        # Happy path. Checking when a valid file is removed.
+        with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as temp_file0:
+            file_name = temp_file0.name
+            self.assertTrue(os.path.exists(file_name))
+            cleanser.remove_files(file_name)
+            self.assertFalse(os.path.exists(file_name))
+
+        # Testing failed deletion of an inexistent file.
+        with self.assertRaises(FileNotFoundError):
+            cleanser.remove_files('fake_file.json')
 
     def test_read_config(self):
         """
@@ -88,33 +80,33 @@ class TestUtilities(unittest.TestCase):
         It will check that the file exists, is readable and the contents are
         valid JSON.
         """
-        # Creating a temporary file.
+        # Checking with an unreadable file.
         with tempfile.NamedTemporaryFile(suffix='.json') as temp_file:
             # Changing file permissions to make the file unreadable.
             os.chmod(temp_file.name, 100)
 
-            # Checking with an unreadable file.
             with self.assertRaises(PermissionError):
                 cleanser.read_config(temp_file.name)
 
         # Checking with an inexistent file.
         with self.assertRaises(FileNotFoundError):
-            cleanser.read_config("fake_file.sql")
+            cleanser.read_config("fake_file.json")
 
-        # Checking with a real, readable file which is not valid JSON/YAML.
-        with self.assertRaises(JSONDecodeError):
-            cleanser.read_config(self.J_CONF_FILE_B)
-
+        # Checking with an unsupported file extension.
         with self.assertRaises(ValueError):
-            cleanser.read_config(self.Y_CONF_FILE)
+            cleanser.read_config(os.path.abspath(__file__))
 
-        # Checking with a valid JSON/YML (temporary) file.
-        # Get the full path of the configuration file.
-        data = cleanser.read_config(self.J_CONF_FILE)
+        # Checking with a valid JSON file.
+        data = cleanser.read_config(os.path.join(PROJECT_DIR, "config", "config.json"))
         self.assertIsInstance(data, dict)
 
-        data = cleanser.read_config(self.J_CONF_FILE)
-        self.assertIsInstance(data, dict)
+        # Checking with a valid file that has invalid JSON formatting.
+        with tempfile.NamedTemporaryFile(suffix='.json') as temp_file:
+            # Inserting invalid data into the JSON file.
+            temp_file.write(b'I am invalid JSON data!')
+
+            with self.assertRaises(json.JSONDecodeError):
+                cleanser.read_config(temp_file.name)
 
 
 if __name__ == '__main__':
