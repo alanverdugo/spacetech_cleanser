@@ -25,6 +25,12 @@
             "period": 30
         },
         {
+            "name": "Images logs",
+            "comment": "It stores images logs",
+            "directory": "/work/logs/images/",
+            "period": 30
+        },
+        {
             "name": "Camera images",
             "comment": "It stores camera images",
             "directory": "/work/images/",

@@ -2,11 +2,9 @@
 """
 Delete old files from the file system.
 
-Author:
-Alan Verdugo (alan.verdugo.munoz1@ibm.com)
+Author: Alan Verdugo (alan.verdugo.munoz1@ibm.com)
 
-Creation date:
-2022-01-27
+Creation date: 2022-01-27
 
 Copyright 2022 IBM Corporation
 

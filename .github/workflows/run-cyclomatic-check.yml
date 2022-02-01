@@ -1,4 +1,4 @@
-name: Run linting
+name: Cyclomatic complexity check
 on: [push]
 jobs:
   build:
@@ -17,23 +17,10 @@ jobs:
           python -m pip install --upgrade pip
           # Install local package
           pip install -e .
-          pip install flake8 pylint pydocstyle xenon mypy
+          pip install xenon
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Lint with various linters
         run: |
-          # Check compliance with PEP-8
-          pylint cleanser/cleanser.py
-          pylint tests/test_cleanser.py
-          # Check docstrings
-          pydocstyle cleanser/cleanser.py
-          pydocstyle tests/test_cleanser.py
-          # Stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-          # Static type checking
-          mypy cleanser/cleanser.py
-          mypy tests/test_cleanser.py
           # Cyclomatic complexity checking
           xenon cleanser/cleanser.py
           xenon tests/test_cleanser.py
