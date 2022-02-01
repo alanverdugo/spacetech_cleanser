@@ -17,7 +17,7 @@ jobs:
           python -m pip install --upgrade pip
           # Install local package
           pip install -e .
-          pip bandit
+          pip install bandit
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Lint with various linters
         run: |
