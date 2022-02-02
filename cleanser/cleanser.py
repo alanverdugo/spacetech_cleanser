@@ -44,9 +44,14 @@ PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 def main():
     """Orchestrate the program logic."""
-
     # Read configuration values.
-    conf = read_config(os.path.join(PROJECT_DIR, "conf", "config.json"))
+    config = read_config(os.path.join(PROJECT_DIR, "conf", "config.json"))
+
+    # Crawl the file system and try to find old files.
+    old_files = search_old_files(config=config)
+
+    # Remove the files that were deemed unnecessary.
+    remove_files()
 
 
 def read_config(conf_file: str) -> dict:
@@ -80,12 +85,22 @@ def read_config(conf_file: str) -> dict:
         return config
 
 
+def search_old_files(files, config):
+    """Crawl the file system and try to find old files."""
+    old_files = []
+    for file_ in files:
+        if check_age(file_=file_, config=config):
+            old_files.append(file_)
+    return old_files
+
+
 def check_age(file_, config: dict) -> list:
     """Build a list of files that are past their end of life."""
     # TODO: fix this
     if (time.time() - os.path.getmtime(file_)) > "MAX_AGE_OF_LAST_LOG_FILE":
-        pass
+        return True
         # The newest file is older than the allowed age.
+    return False
 
 
 def remove_files(*file_paths: list):
@@ -98,7 +113,5 @@ def remove_files(*file_paths: list):
     for file_path in file_paths:
         try:
             os.remove(file_path)
-
-        except FileNotFoundError as exception:
+        except FileNotFoundError:
             LOG.warning("Unable to find the file %s", file_path, exc_info=True)
-            raise exception
