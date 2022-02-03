@@ -66,12 +66,11 @@ class TestCleanser(unittest.TestCase):
         with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as temp_file0:
             file_name = temp_file0.name
             self.assertTrue(os.path.exists(file_name))
-            cleanser.remove_files(file_name)
+            cleanser.remove_files([file_name])
             self.assertFalse(os.path.exists(file_name))
 
         # Testing failed deletion of an inexistent file.
-        with self.assertRaises(FileNotFoundError):
-            cleanser.remove_files('fake_file.json')
+        cleanser.remove_files(['fake_file.json'])
 
     def test_read_config(self):
         """

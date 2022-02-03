@@ -46,9 +46,6 @@ import json
 # Time handling.
 import time
 
-# Typing
-from typing import Dict, Any
-
 
 # Create log object.
 LOG = logging.getLogger(__name__)
@@ -72,7 +69,7 @@ def main():
         LOG.info("Did not file files old enough to delete. Nothing to do.")
 
 
-def read_config(conf_file: str) -> Dict[Any, Any]:
+def read_config(conf_file: str) -> str:
     """
     Load configuration/environment files.
 
