@@ -46,6 +46,10 @@ import json
 # Time handling.
 import time
 
+# Typing
+from typing import Dict, Any
+
+
 # Create log object.
 LOG = logging.getLogger(__name__)
 
@@ -68,7 +72,7 @@ def main():
         LOG.info("Did not file files old enough to delete. Nothing to do.")
 
 
-def read_config(conf_file: str) -> dict:
+def read_config(conf_file: str) -> Dict[Any, Any]:
     """
     Load configuration/environment files.
 
@@ -142,7 +146,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     # Log level parameters.
     parser.add_argument("-v", "--verbose",
-                        help="Print INFO, WARNING, and ERROR messages "\
+                        help="Print INFO, WARNING, and ERROR messages "
                         "to the stdout or stderr.",
                         dest="verbose",
                         default=False,
@@ -168,8 +172,8 @@ if __name__ == "__main__":
 
     # Stream handler for human consumption and stderr.
     STREAM_HANDLER = logging.StreamHandler()
-    STREAM_FORMATTER = logging.Formatter("%(asctime)s - "\
-                                         "%(levelname)s - "\
+    STREAM_FORMATTER = logging.Formatter("%(asctime)s - "
+                                         "%(levelname)s - "
                                          "%(message)s")
 
     STREAM_HANDLER.setFormatter(STREAM_FORMATTER)
