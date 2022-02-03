@@ -6,6 +6,14 @@ Author: Alan Verdugo (alan.verdugo.munoz1@ibm.com)
 
 Creation date: 2022-01-27
 
+usage: cleanser.py [-h] [-v] [-d]
+
+optional arguments:
+  -h, --help     show this help message and exit
+  -v, --verbose  Print INFO, WARNING, and ERROR messages to the stdout or
+                 stderr.
+  -d, --debug    Print DEBUG messages to the stdout or stderr.
+
 Copyright 2022 IBM Corporation
 
 SPDX-License-Identifier: Apache-2.0
@@ -26,17 +34,19 @@ limitations under the License.
 # OS related functionality.
 import os
 
+# Parse arguments.
+import argparse
+
 # Log handling.
 import logging
 
 # JSON handling.
 import json
 
-# date and time handling.
-from datetime import time
+# Time handling.
+import time
 
-# Set log level.
-logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
+# Create log object.
 LOG = logging.getLogger(__name__)
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -45,13 +55,17 @@ PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 def main():
     """Orchestrate the program logic."""
     # Read configuration values.
-    config = read_config(os.path.join(PROJECT_DIR, "conf", "config.json"))
+    config = read_config(os.path.join(PROJECT_DIR, "config", "config.json"))
 
     # Crawl the file system and try to find old files.
     old_files = search_old_files(config=config)
 
     # Remove the files that were deemed unnecessary.
-    remove_files()
+    if old_files:
+        LOG.info("Found files to delete: \n%s", old_files)
+        remove_files(old_files)
+    else:
+        LOG.info("Did not file files old enough to delete. Nothing to do.")
 
 
 def read_config(conf_file: str) -> dict:
@@ -85,25 +99,28 @@ def read_config(conf_file: str) -> dict:
         return config
 
 
-def search_old_files(files, config):
+def search_old_files(config):
     """Crawl the file system and try to find old files."""
     old_files = []
-    for file_ in files:
-        if check_age(file_=file_, config=config):
-            old_files.append(file_)
+    for directory in config["directories"]:
+        LOG.info("Checking files in %s", directory["directory"])
+        for file_ in os.listdir(directory["directory"]):
+            absolute_file_path = f"{directory['directory']}{file_}"
+            if check_age(file_=absolute_file_path, max_age_days=directory["period"]):
+                old_files.append(absolute_file_path)
     return old_files
 
 
-def check_age(file_, config: dict) -> list:
+def check_age(file_, max_age_days: int) -> bool:
     """Build a list of files that are past their end of life."""
-    # TODO: fix this
-    if (time.time() - os.path.getmtime(file_)) > "MAX_AGE_OF_LAST_LOG_FILE":
+    if (time.time() - os.path.getmtime(file_)) > (max_age_days * 24 * 60 * 60):
+        LOG.debug("%s is old enough to be deleted", file_)
         return True
-        # The newest file is older than the allowed age.
+    LOG.debug("%s is not old enough to be deleted", file_)
     return False
 
 
-def remove_files(*file_paths: list):
+def remove_files(file_paths: list):
     """
     Delete a collection of files from the OS file system.
 
@@ -114,4 +131,48 @@ def remove_files(*file_paths: list):
         try:
             os.remove(file_path)
         except FileNotFoundError:
-            LOG.warning("Unable to find the file %s", file_path, exc_info=True)
+            LOG.warning("Unable to find the file: %s", file_path)
+        except PermissionError:
+            LOG.error("Unable to delete file due to lack of permissions: %s",
+                      file_path)
+
+
+def get_args():
+    """Get and parse arguments."""
+    parser = argparse.ArgumentParser()
+    # Log level parameters.
+    parser.add_argument("-v", "--verbose",
+                        help="Print INFO, WARNING, and ERROR messages "\
+                        "to the stdout or stderr.",
+                        dest="verbose",
+                        default=False,
+                        action="store_true")
+    parser.add_argument("-d", "--debug",
+                        help="Print DEBUG messages to the stdout or stderr.",
+                        dest="debug",
+                        default=False,
+                        action="store_true")
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    # Parse arguments from the CLI.
+    args = get_args()
+
+    if args.debug:
+        LOG.setLevel(logging.DEBUG)
+    elif args.verbose:
+        LOG.setLevel(logging.INFO)
+    else:
+        LOG.setLevel(logging.ERROR)
+
+    # Stream handler for human consumption and stderr.
+    STREAM_HANDLER = logging.StreamHandler()
+    STREAM_FORMATTER = logging.Formatter("%(asctime)s - "\
+                                         "%(levelname)s - "\
+                                         "%(message)s")
+
+    STREAM_HANDLER.setFormatter(STREAM_FORMATTER)
+    LOG.addHandler(STREAM_HANDLER)
+
+    main()
