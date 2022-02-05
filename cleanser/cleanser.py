@@ -32,6 +32,7 @@ limitations under the License.
 """
 
 # OS related functionality.
+from genericpath import isdir
 import os
 
 # Parse arguments.
@@ -46,6 +47,8 @@ import json
 # Time handling.
 import time
 
+# Directories pattern matching.
+import re
 
 # Create log object.
 LOG = logging.getLogger(__name__)
@@ -63,10 +66,13 @@ def main():
 
     # Remove the files that were deemed unnecessary.
     if old_files:
-        LOG.info("Found files to delete: \n%s", old_files)
-        remove_files(old_files)
+        LOG.info("Found files to delete: %s", old_files)
+        remove_objects(old_files)
     else:
-        LOG.info("Did not file files old enough to delete. Nothing to do.")
+        LOG.info("Did not find files old enough to delete. Nothing to do.")
+
+    # Remove lingering job directories (and their contents).
+    search_old_job_directories()
 
 
 def read_config(conf_file: str) -> str:
@@ -107,35 +113,77 @@ def search_old_files(config):
         LOG.info("Checking files in %s", directory["directory"])
         for file_ in os.listdir(directory["directory"]):
             absolute_file_path = f"{directory['directory']}{file_}"
-            if check_age(file_=absolute_file_path, max_age_days=directory["period"]):
+            if check_age(path_=absolute_file_path, max_age_days=directory["period"]):
                 old_files.append(absolute_file_path)
     return old_files
 
 
-def check_age(file_, max_age_days: int) -> bool:
-    """Build a list of files that are past their end of life."""
-    if (time.time() - os.path.getmtime(file_)) > (max_age_days * 24 * 60 * 60):
-        LOG.debug("%s is old enough to be deleted", file_)
+def search_old_job_directories():
+    """
+    Search and remove obsolete job directories.
+
+    Job directories are supposed to be deleted by the job itself, but we
+    should check if they were not deleted for any reason (E.g. a power outage).
+
+    These directories are located in /work/jobs/ and have names like JXXXXXX,
+    where XXXXXX is a 6-digit integer number (E.g. J123456, J000007).
+    """
+    job_directories = []
+    jobs_parent_dir = "/work/jobs/"
+    LOG.info("Checking job directories in %s", jobs_parent_dir)
+
+    for directory in os.listdir(jobs_parent_dir):
+        # Select only the JXXXXXX directories
+        if re.findall(r"^J[0-9]{6}$", directory):
+            # Get the absolute paths of the directories in /work/jobs/
+            directory = f"{jobs_parent_dir}{directory}"
+            job_directories.append(directory)
+
+    directories_to_delete = []
+    for directory in job_directories:
+        # Check if indeed this is a directory, and if it is past its EOL.
+        if isdir(directory) and check_age(path_=directory, max_age_days=30):
+            directories_to_delete.append(directory)
+
+    if directories_to_delete:
+        LOG.info("Found job directories to delete: %s", directories_to_delete)
+        remove_objects(directories_to_delete)
+    else:
+        LOG.info("Did not find job directories old enough to delete. "
+                 "Nothing to do.")
+
+
+def check_age(path_: str, max_age_days: int) -> bool:
+    """
+    Build a list of files or directories that are past their end of life.
+
+    :param path: The absolute path of a file or directory to check.
+    :param max_age_days: The integer number of days for the allowed lifespan.
+    """
+    if (time.time() - os.path.getmtime(path_)) > (max_age_days * 24 * 60 * 60):
+        LOG.debug("%s is old enough to be deleted.", path_)
         return True
-    LOG.debug("%s is not old enough to be deleted", file_)
+    LOG.debug("%s is not old enough to be deleted.", path_)
     return False
 
 
-def remove_files(file_paths: list):
+def remove_objects(paths: list):
     """
-    Delete a collection of files from the OS file system.
+    Delete a collection of files or directories from the OS file system.
 
-    :param file_paths: A list containing file path(s).
+    :param file_paths: A list containing file or directories absolute path(s).
     """
-    LOG.info("Removing file(s): %s", file_paths)
-    for file_path in file_paths:
+    LOG.info("Removing file(s) or directories: %s", paths)
+    for path in paths:
         try:
-            os.remove(file_path)
+            if os.path.isfile(path):
+                os.remove(path)
+            elif os.path.isdir(path):
+                os.rmdir(path)
         except FileNotFoundError:
-            LOG.warning("Unable to find the file: %s", file_path)
+            LOG.warning("Unable to find: %s", path)
         except PermissionError:
-            LOG.error("Unable to delete file due to lack of permissions: %s",
-                      file_path)
+            LOG.error("Unable to delete due to lack of permissions: %s", path)
 
 
 def get_args():
