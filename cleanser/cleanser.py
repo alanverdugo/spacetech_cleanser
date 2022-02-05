@@ -42,6 +42,7 @@ import logging
 
 # JSON handling.
 import json
+import shutil
 
 # Time handling.
 import time
@@ -182,7 +183,7 @@ def remove_objects(paths: list):
             if os.path.isfile(path):
                 os.remove(path)
             elif os.path.isdir(path):
-                os.rmdir(path)
+                shutil.rmtree(path, ignore_errors=True)
         except FileNotFoundError:
             LOG.warning("Unable to find: %s", path)
         except PermissionError:
