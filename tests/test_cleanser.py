@@ -53,24 +53,18 @@ LOG = logging.getLogger(__name__)
 class TestCleanser(unittest.TestCase):
     """Initial class for unit test."""
 
-    def test_remove_files(self):
-        """
-        Test the complete properties of remove_files.
-
-        It will check for  a file to be deleted by its own, two files to be
-        deleted in the same process and to send an invalid file that will
-        create a log warning in remove_file process.
-        """
-        LOG.info("Starting test_remove_files")
+    def test_remove_objects(self):
+        """Test the complete properties of remove_objects."""
+        LOG.info("Starting test_remove_objects")
         # Happy path. Checking when a valid file is removed.
         with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as temp_file0:
             file_name = temp_file0.name
             self.assertTrue(os.path.exists(file_name))
-            cleanser.remove_files([file_name])
+            cleanser.remove_objects([file_name])
             self.assertFalse(os.path.exists(file_name))
 
         # Testing failed deletion of an inexistent file.
-        cleanser.remove_files(['fake_file.json'])
+        cleanser.remove_objects(['fake_file.json'])
 
     def test_read_config(self):
         """

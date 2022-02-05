@@ -32,7 +32,6 @@ limitations under the License.
 """
 
 # OS related functionality.
-from genericpath import isdir
 import os
 
 # Parse arguments.
@@ -49,6 +48,9 @@ import time
 
 # Directories pattern matching.
 import re
+
+# Directory type validation.
+from genericpath import isdir
 
 # Create log object.
 LOG = logging.getLogger(__name__)
@@ -113,7 +115,8 @@ def search_old_files(config):
         LOG.info("Checking files in %s", directory["directory"])
         for file_ in os.listdir(directory["directory"]):
             absolute_file_path = f"{directory['directory']}{file_}"
-            if check_age(path_=absolute_file_path, max_age_days=directory["period"]):
+            if check_age(path_=absolute_file_path,
+                         max_age_days=directory["period"]):
                 old_files.append(absolute_file_path)
     return old_files
 
